@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { SimulationProvider, useSimulation } from "@/context/SimulationContext";
 import { RoleSelection } from "@/components/RoleSelection";
 import { SimulatorControlBar } from "@/components/SimulatorControlBar";
@@ -17,9 +17,18 @@ import {
   Truck,
   Building2,
   Users,
-  HardDrive,
-  Cpu,
   AlertTriangle,
+  User,
+  Phone,
+  Droplet,
+  AlertCircle,
+  MapPin,
+  Star,
+  Stethoscope,
+  Bed,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
@@ -27,6 +36,40 @@ import dynamic from "next/dynamic";
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), { ssr: false });
 
 function AppContent() {
+  const [activeTab, setActiveTab] = useState<"dashboard" | "profile">("dashboard");
+  
+  // Edit mode states for each role
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [isEditingDriver, setIsEditingDriver] = useState(false);
+  const [isEditingHospital, setIsEditingHospital] = useState(false);
+
+  // User profile edit state
+  const [userProfileData, setUserProfileData] = useState({
+    fullName: "Dharshan Kumar",
+    mobile: "+91 98765 43210",
+    bloodGroup: "O+",
+    emergencyFriendName: "Priya Sharma",
+    emergencyFriendPhone: "+91 98765 12345",
+    allergiesStatus: "Yes",
+    allergyDetails: "Penicillin - Moderate, Shellfish - Severe",
+  });
+
+  // Driver profile edit state
+  const [driverProfileData, setDriverProfileData] = useState({
+    driverName: "Raj Patel",
+    mobile: "+91 97654 32109",
+    address: "123 Ambulance Depot, Medical Complex, Chennai - 600091",
+    trustScore: "4.8",
+  });
+
+  // Hospital profile edit state
+  const [hospitalProfileData, setHospitalProfileData] = useState({
+    hospitalName: "Fortis Malar Hospital",
+    availableBeds: "12 of 45",
+    location: "No. 1, 1st Main Road, K.K. Nagar, Chennai - 600078",
+    facilities: "Emergency Department, Trauma Center, ICU, Surgery Theatres, CT Scan, X-Ray",
+  });
+
   const {
     activeRole,
     isLoggedIn,
@@ -46,6 +89,52 @@ function AppContent() {
     return <RoleSelection />;
   }
 
+  // Render tabs for dashboard
+  const renderTabs = () => {
+    const isUser = activeRole === "user";
+    const isDriver = activeRole === "driver";
+    const isHospital = activeRole === "hospital";
+
+    const getDashboardTabClass = () => {
+      if (!isUser && !isDriver && !isHospital) return "text-text-secondary hover:text-text-primary";
+      
+      if (activeTab === "dashboard") {
+        if (isDriver) return "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20";
+        if (isHospital) return "bg-teal-500/10 text-teal-500 border border-teal-500/20";
+        return "bg-primary/10 text-primary border border-primary/20";
+      }
+      return "text-text-secondary hover:text-text-primary";
+    };
+
+    const getProfileTabClass = () => {
+      if (!isUser && !isDriver && !isHospital) return "text-text-secondary hover:text-text-primary";
+      
+      if (activeTab === "profile") {
+        if (isDriver) return "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20";
+        if (isHospital) return "bg-teal-500/10 text-teal-500 border border-teal-500/20";
+        return "bg-primary/10 text-primary border border-primary/20";
+      }
+      return "text-text-secondary hover:text-text-primary";
+    };
+
+    return (
+      <div className="flex gap-2 pb-6 border-b border-border-custom mb-6">
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${getDashboardTabClass()}`}
+        >
+          Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab("profile")}
+          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${getProfileTabClass()}`}
+        >
+          Profile Information
+        </button>
+      </div>
+    );
+  };
+
   // Dashboard content renderings
   const renderDashboardPlaceholder = () => {
     switch (activeRole) {
@@ -57,6 +146,10 @@ function AppContent() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
+            {renderTabs()}
+            
+            {activeTab === "dashboard" ? (
+              <>
             {/* Header info */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-border-custom">
               <div>
@@ -213,6 +306,223 @@ function AppContent() {
             <div className="p-4 rounded-2xl bg-secondary/30 border border-border-custom text-xs text-text-secondary">
               <strong>Phase 1 System Note:</strong> You are view-locked to the citizen sensor hub. Telemetries fluctuate locally. You can use the top control bar to switch dashboard views and verify interaction pipelines.
             </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                {/* Edit/Save Buttons Header */}
+                <div className="flex justify-end gap-2 mb-4">
+                  {!isEditingUser ? (
+                    <Button
+                      onClick={() => setIsEditingUser(true)}
+                      className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setIsEditingUser(false);
+                        }}
+                        className="bg-success hover:bg-success/90 text-white flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </Button>
+                      <Button
+                        onClick={() => setIsEditingUser(false)}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditingUser ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Full Name Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Full Name</label>
+                        <input
+                          type="text"
+                          value={userProfileData.fullName}
+                          onChange={(e) => setUserProfileData({...userProfileData, fullName: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </Card>
+
+                      {/* Mobile Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Mobile Number</label>
+                        <input
+                          type="tel"
+                          value={userProfileData.mobile}
+                          onChange={(e) => setUserProfileData({...userProfileData, mobile: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </Card>
+
+                      {/* Blood Group Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Blood Group</label>
+                        <input
+                          type="text"
+                          value={userProfileData.bloodGroup}
+                          onChange={(e) => setUserProfileData({...userProfileData, bloodGroup: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </Card>
+
+                      {/* Emergency Friend Name Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Emergency Contact Name</label>
+                        <input
+                          type="text"
+                          value={userProfileData.emergencyFriendName}
+                          onChange={(e) => setUserProfileData({...userProfileData, emergencyFriendName: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </Card>
+
+                      {/* Emergency Friend Phone Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Emergency Contact Number</label>
+                        <input
+                          type="tel"
+                          value={userProfileData.emergencyFriendPhone}
+                          onChange={(e) => setUserProfileData({...userProfileData, emergencyFriendPhone: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        />
+                      </Card>
+
+                      {/* Allergies Status Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Allergies Status</label>
+                        <select
+                          value={userProfileData.allergiesStatus}
+                          onChange={(e) => setUserProfileData({...userProfileData, allergiesStatus: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                          <option>Yes</option>
+                          <option>No</option>
+                        </select>
+                      </Card>
+                    </div>
+
+                    {/* Allergy Details Edit */}
+                    <Card className="border border-warning/20 bg-warning/[0.02] p-6 rounded-3xl">
+                      <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Allergy Details</label>
+                      <textarea
+                        value={userProfileData.allergyDetails}
+                        onChange={(e) => setUserProfileData({...userProfileData, allergyDetails: e.target.value})}
+                        className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-24 resize-none"
+                        placeholder="Enter allergy details..."
+                      />
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Full Name */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Full Name</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{userProfileData.fullName}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Mobile Number */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shrink-0">
+                        <Phone className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Mobile Number</span>
+                        <p className="text-lg font-black text-text-primary font-mono mt-1">{userProfileData.mobile}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Blood Group */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-emergency/10 flex items-center justify-center text-emergency border border-emergency/20 shrink-0">
+                        <Droplet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Blood Group</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{userProfileData.bloodGroup}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Emergency Friend Name */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20 shrink-0">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Emergency Contact</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{userProfileData.emergencyFriendName}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Emergency Friend Contact Number */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <Phone className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Contact Number</span>
+                        <p className="text-lg font-black text-text-primary font-mono mt-1">{userProfileData.emergencyFriendPhone}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Allergies Status */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center text-warning border border-warning/20 shrink-0">
+                        <AlertCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Allergies Status</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{userProfileData.allergiesStatus}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Allergy Details */}
+                <Card className="border border-warning/20 bg-warning/[0.02] p-6 rounded-3xl">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center text-warning border border-warning/20 shrink-0">
+                      <AlertCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-extrabold text-text-primary uppercase tracking-wider">Allergy Details</h4>
+                      <p className="text-sm text-text-secondary mt-2">{userProfileData.allergyDetails}</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+                )}
+              </div>
+            )}
           </motion.div>
         );
 
@@ -224,6 +534,10 @@ function AppContent() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
+            {renderTabs()}
+
+            {activeTab === "dashboard" ? (
+              <>
             {/* Header info */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-border-custom">
               <div>
@@ -344,6 +658,153 @@ function AppContent() {
                 </Card>
               </div>
             </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                {/* Edit/Save Buttons Header */}
+                <div className="flex justify-end gap-2 mb-4">
+                  {!isEditingDriver ? (
+                    <Button
+                      onClick={() => setIsEditingDriver(true)}
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setIsEditingDriver(false);
+                        }}
+                        className="bg-success hover:bg-success/90 text-white flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </Button>
+                      <Button
+                        onClick={() => setIsEditingDriver(false)}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditingDriver ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Driver Name Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Driver Name</label>
+                        <input
+                          type="text"
+                          value={driverProfileData.driverName}
+                          onChange={(e) => setDriverProfileData({...driverProfileData, driverName: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        />
+                      </Card>
+
+                      {/* Mobile Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Mobile Number</label>
+                        <input
+                          type="tel"
+                          value={driverProfileData.mobile}
+                          onChange={(e) => setDriverProfileData({...driverProfileData, mobile: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        />
+                      </Card>
+
+                      {/* Address Edit */}
+                      <Card glass className="p-5 rounded-3xl md:col-span-2">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Address</label>
+                        <textarea
+                          value={driverProfileData.address}
+                          onChange={(e) => setDriverProfileData({...driverProfileData, address: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 min-h-20 resize-none"
+                        />
+                      </Card>
+
+                      {/* Trust Score Edit (Read-only display) */}
+                      <Card glass className="p-5 rounded-3xl md:col-span-2">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Trust Score</label>
+                        <div className="px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-secondary">
+                          {driverProfileData.trustScore} / 5.0 (Auto-calculated based on performance)
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Driver Name */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20 shrink-0">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Driver Name</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{driverProfileData.driverName}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Mobile Number */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <Phone className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Mobile Number</span>
+                        <p className="text-lg font-black text-text-primary font-mono mt-1">{driverProfileData.mobile}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Address */}
+                  <Card glass className="p-5 rounded-3xl md:col-span-2">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20 shrink-0">
+                        <MapPin className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Address</span>
+                        <p className="text-base font-semibold text-text-primary mt-1">{driverProfileData.address}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Trust Score */}
+                <Card className="border border-primary/20 bg-primary/[0.01] p-6 rounded-3xl">
+                  <div className="flex items-center justify-between gap-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <Star className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Trust Score</span>
+                        <p className="text-base text-text-secondary mt-1">Performance rating based on safe deliveries</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border-2 border-primary">
+                        <span className="text-2xl font-black text-primary">{driverProfileData.trustScore}</span>
+                      </div>
+                      <p className="text-xs text-text-secondary mt-2">out of 5.0</p>
+                    </div>
+                  </div>
+                </Card>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         );
 
@@ -355,6 +816,10 @@ function AppContent() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
+            {renderTabs()}
+
+            {activeTab === "dashboard" ? (
+              <>
             {/* Header info */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-border-custom">
               <div>
@@ -496,6 +961,154 @@ function AppContent() {
                 )}
               </div>
             </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                {/* Edit/Save Buttons Header */}
+                <div className="flex justify-end gap-2 mb-4">
+                  {!isEditingHospital ? (
+                    <Button
+                      onClick={() => setIsEditingHospital(true)}
+                      className="bg-teal-500 hover:bg-teal-600 text-white flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => {
+                          setIsEditingHospital(false);
+                        }}
+                        className="bg-success hover:bg-success/90 text-white flex items-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </Button>
+                      <Button
+                        onClick={() => setIsEditingHospital(false)}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditingHospital ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Hospital Name Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Hospital Name</label>
+                        <input
+                          type="text"
+                          value={hospitalProfileData.hospitalName}
+                          onChange={(e) => setHospitalProfileData({...hospitalProfileData, hospitalName: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                        />
+                      </Card>
+
+                      {/* Available Beds Edit */}
+                      <Card glass className="p-5 rounded-3xl">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Available Beds</label>
+                        <input
+                          type="text"
+                          value={hospitalProfileData.availableBeds}
+                          onChange={(e) => setHospitalProfileData({...hospitalProfileData, availableBeds: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                        />
+                      </Card>
+
+                      {/* Location Edit */}
+                      <Card glass className="p-5 rounded-3xl md:col-span-2">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Location</label>
+                        <textarea
+                          value={hospitalProfileData.location}
+                          onChange={(e) => setHospitalProfileData({...hospitalProfileData, location: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50 min-h-20 resize-none"
+                        />
+                      </Card>
+
+                      {/* Facilities Edit */}
+                      <Card className="border border-teal-500/20 bg-teal-500/[0.01] p-5 rounded-3xl md:col-span-2">
+                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-3">Available Facilities</label>
+                        <textarea
+                          value={hospitalProfileData.facilities}
+                          onChange={(e) => setHospitalProfileData({...hospitalProfileData, facilities: e.target.value})}
+                          className="w-full px-4 py-2 rounded-lg border border-border-custom bg-white/50 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50 min-h-24 resize-none"
+                          placeholder="Enter facilities separated by commas..."
+                        />
+                      </Card>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Hospital Name */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20 shrink-0">
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Hospital Name</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{hospitalProfileData.hospitalName}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Available Beds */}
+                  <Card glass className="p-5 rounded-3xl">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <Bed className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Available Beds</span>
+                        <p className="text-lg font-black text-text-primary mt-1">{hospitalProfileData.availableBeds}</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Hospital Location */}
+                  <Card glass className="p-5 rounded-3xl md:col-span-2">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                        <MapPin className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Location</span>
+                        <p className="text-base font-semibold text-text-primary mt-1">{hospitalProfileData.location}</p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Available Facilities */}
+                <Card className="border border-teal-500/20 bg-teal-500/[0.01] p-6 rounded-3xl">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20 shrink-0">
+                      <Stethoscope className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-extrabold text-text-primary uppercase tracking-wider">Available Facilities</h4>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {hospitalProfileData.facilities.split(',').map((facility, idx) => (
+                          <span key={idx} className="inline-flex items-center px-3 py-1.5 rounded-full bg-teal-500/10 text-teal-600 text-xs font-semibold border border-teal-500/20">
+                            {facility.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+                )}
+              </div>
+            )}
           </motion.div>
         );
 
@@ -518,45 +1131,6 @@ function AppContent() {
           <AnimatePresence mode="wait">
             {renderDashboardPlaceholder()}
           </AnimatePresence>
-        </div>
-
-        {/* Global architectural review card */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card glass className="p-5 flex gap-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-extrabold text-text-primary">Phase 1 Context Synced</h4>
-              <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                Roles share real-time state flags. Actions (like 15G Impact) trigger automatic response cycles across all terminals.
-              </p>
-            </div>
-          </Card>
-
-          <Card glass className="p-5 flex gap-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0 border border-indigo-500/20">
-              <HardDrive className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-extrabold text-text-primary">Light Day Palette Installed</h4>
-              <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                Built strictly with `#F5F7FB` backdrop variables, pure glass cards, and calm visual elements matching healthcare requirements.
-              </p>
-            </div>
-          </Card>
-
-          <Card glass className="p-5 flex gap-4">
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 shrink-0 border border-teal-500/20">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-extrabold text-text-primary">Modular Components Built</h4>
-              <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                Base structure contains decoupled Context APIs, reusable UI components, and authentication routes ready for full page integrations.
-              </p>
-            </div>
-          </Card>
         </div>
       </main>
     </div>
