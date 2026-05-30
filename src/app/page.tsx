@@ -83,6 +83,7 @@ function AppContent() {
     acceptEmergencyByDriver,
     resolveEmergency,
     resetSimulation,
+    triggerSevereImpact,
   } = useSimulation();
 
   if (!isLoggedIn || activeRole === "guest") {
@@ -222,8 +223,19 @@ function AppContent() {
                 </p>
 
                 {emergencyState === "idle" && (
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <p className="text-xs text-text-secondary self-center">No emergencies currently active.</p>
+                  <div className="mt-6 flex flex-col gap-4">
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        onClick={triggerSevereImpact}
+                        className="bg-emergency hover:bg-emergency/90 text-white font-extrabold shadow-lg shadow-emergency/20 px-6 py-4 rounded-2xl flex items-center gap-2 transition-all duration-300 hover:scale-[1.02]"
+                      >
+                        <AlertTriangle className="w-5 h-5 animate-pulse" />
+                        Trigger High-G Sensor Collision (Simulate Accident)
+                      </Button>
+                    </div>
+                    <p className="text-xs text-text-secondary max-w-lg leading-relaxed">
+                      Clicking this button injects a sudden <strong className="text-emergency">17.2G impact G-force</strong> anomaly into the wearable smartwatch telemetry. The system will instantly detect the accident, begin a 5-second countdown to verify citizen consciousness, and automatically broadcast an SOS emergency relay to local ambulances.
+                    </p>
                   </div>
                 )}
 

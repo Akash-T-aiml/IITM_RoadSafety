@@ -1,0 +1,1 @@
+# SmartRescue AI Backend Application
